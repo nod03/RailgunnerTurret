@@ -1,19 +1,24 @@
 ﻿using BepInEx;
+using EntityStates.Railgunner.Weapon;
+using IL.RoR2.UI;
 using R2API;
+using R2API.ContentManagement;
 using RoR2;
+using RoR2.Audio;
+using RoR2.CharacterAI;
+using RoR2.Skills;
+using RoR2BepInExPack;
+using RoR2BepInExPack.GameAssetPaths;
+using System;
+using System.Collections;
+using System.Diagnostics.Tracing;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using RoR2.Skills;
-using System;
-using RoR2.CharacterAI;
-using System.Collections;
 using UnityEngine.Rendering;
-using RoR2BepInExPack;
-using R2API.ContentManagement;
-using RoR2BepInExPack.GameAssetPaths;
-using System.Linq;
-using System.Diagnostics.Tracing;
+using UnityEngine.TextCore.Text;
+using Random = UnityEngine.Random;
 
 namespace RailgunnerTurret
 {
@@ -22,8 +27,12 @@ namespace RailgunnerTurret
         public static GameObject railgunnerTurretPrefab;
         public static GameObject railgunnerTurretMasterPrefab;
 
-        public static GameObject w = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Engi.EngiTurretWristDisplay_prefab).WaitForCompletion();
-        public static GameObject b = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Engi.EngiWalkerTurretBlueprints_prefab).WaitForCompletion();
+        public static GameObject wristDisplay = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Engi.EngiTurretWristDisplay_prefab).WaitForCompletion();
+        public static GameObject blueprints = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Engi.EngiWalkerTurretBlueprints_prefab).WaitForCompletion();
+
+        public static GameObject hitEffectPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_DLC1_Railgunner.ImpactRailgun_prefab).WaitForCompletion();
+        public static GameObject muzzleFlashPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Common_VFX.Muzzleflash1_prefab).WaitForCompletion();
+        public static GameObject tracerEffectPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_DLC1_Railgunner.TracerRailgunSuper_prefab).WaitForCompletion();
 
         public static void Init()
         {
@@ -35,7 +44,7 @@ namespace RailgunnerTurret
         {
             railgunnerTurretPrefab = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Engi.EngiWalkerTurretBody_prefab).WaitForCompletion(),"RailgunnerTurretBody");
             ContentPacks.bodyPrefabs.Add(railgunnerTurretPrefab);
-            
+
             railgunnerTurretMasterPrefab = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Engi.EngiWalkerTurretMaster_prefab).WaitForCompletion(), "RailgunnerTurretMaster");
             ContentPacks.masterPrefabs.Add(railgunnerTurretMasterPrefab);
 
@@ -47,12 +56,14 @@ namespace RailgunnerTurret
 
             var skillLocator = body.GetComponent<SkillLocator>();
 
+            body.baseMoveSpeed = body.baseMoveSpeed * 0.6f; // movement speed tweak
+
             // replaces primary with railgun shot
             SkillDef railShotClone = ScriptableObject.Instantiate(Addressables.LoadAssetAsync<SkillDef>(RoR2_DLC1_Railgunner.RailgunnerBodyFireSnipeSuper_asset).WaitForCompletion());
             ContentPacks.skillDefs.Add(railShotClone);
             
-            //railShotClone.activationState = new EntityStates.SerializableEntityStateType(typeof(FireSnipeSuperTurret));
-            //ContentPacks.entityStateTypes.Add(typeof(FireSnipeSuperTurret));
+            railShotClone.activationState = new EntityStates.SerializableEntityStateType(typeof(FireSnipeSuperTurret));
+            ContentPacks.entityStateTypes.Add(typeof(FireSnipeSuperTurret));
 
             railShotClone.baseRechargeInterval = 21f;
             railShotClone.baseMaxStock = 1;
@@ -77,6 +88,10 @@ namespace RailgunnerTurret
                     driver.activationRequiresTargetLoS = true;
                     driver.activationRequiresAimConfirmation = true;
                     driver.activationRequiresAimTargetLoS = true;
+                }
+                if (driver.moveTargetType == AISkillDriver.TargetType.CurrentLeader && driver.minDistance == 110) // this changes the sprinting behaviour
+                {
+                    driver.minDistance = 20;
                 }
             }
 
@@ -126,6 +141,8 @@ namespace RailgunnerTurret
 
             skillFamily.variants = skillFamily.variants.Append(poop).ToArray();
 
+            ContentAddition.AddSkillDef(skill);
+
             Log.Debug("skill created");
         }
     }
@@ -133,8 +150,8 @@ namespace RailgunnerTurret
     {
         public override void OnEnter()
         {
-            wristDisplayPrefab = Assets.w;
-            blueprintPrefab = Assets.b;
+            wristDisplayPrefab = Assets.wristDisplay;
+            blueprintPrefab = Assets.blueprints;
             placeSoundString = "";
             turretMasterPrefab = Assets.railgunnerTurretMasterPrefab;
             base.OnEnter();
@@ -146,11 +163,50 @@ namespace RailgunnerTurret
     {
         public override void OnEnter()
         {
+            hitEffectPrefab = Assets.hitEffectPrefab;
+            force = 4000f;
+            headshotSoundString = "Play_railgunner_m2_headshot";
+            fireSoundString = "Play_railgunner_R_fire";
+            damageCoefficient = 30f; // DAMAGE COEFF ORIGINALLY 40
+            critDamageMultiplier = 1.5f;
+            bulletRadius = 1;
+            bulletCount = 1;
+            baseDuration = 1;
+            animationStateName = "FireSuper";
+            animationPlaybackRateParam = "Super.playbackRate";
+            animationLayerName = "Gesture, Override";
+            recoilAmplitudeX = 1f;
+            recoilAmplitudeY = 6f;
+            procCoefficient = 1.5f; // PROC COEFF ORIGINALLY 3
+            piercingDamageCoefficientPerTarget = 1f;
+            muzzleName = "MuzzleRight";
+            muzzleFlashPrefab = Assets.muzzleFlashPrefab;
+            minSpread = 0;
+            maxSpread = 0;
+            maxDistance = 9999;
+            isPiercing = true;
+            useSmartCollision = true;
+            useSecondaryStocks = false;
+            trajectoryAimAssistMultiplier = 0;
+            tracerEffectPrefab = Assets.tracerEffectPrefab;
+            spreadYawScale = 0;
+            spreadPitchScale = 0;
+            spreadBloomValue = 0;
+            selfKnockbackForce = 9000; // ORIGINALLY 3000
+
             base.OnEnter();
-            var body = this.characterBody;
-            Vector3 recoilDir = body.characterDirection.forward;// + Vector3.down * 0.5f;
-            recoilDir.Normalize();
-            body.characterMotor.ApplyForce(-recoilDir * 10000f, true);
+            
+            //var body = this.characterBody;
+            //Vector3 recoilDir = body.characterDirection.forward;// + Vector3.down * 0.5f;
+            //recoilDir.Normalize();
+            //body.characterMotor.ApplyForce(-recoilDir * 10000f, true);
+        }
+
+        public override void ModifyBullet(BulletAttack bulletAttack)
+        {
+            base.ModifyBullet(bulletAttack);
+
+            bulletAttack.sniper = false;
         }
     }
 }

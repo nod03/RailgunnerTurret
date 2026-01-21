@@ -38,21 +38,7 @@ namespace RailgunnerTurret
 
         private void Hooks()
         {
-            On.EntityStates.Railgunner.Weapon.FireSnipeSuper.ModifyBullet += TurretShot;
-
             On.RoR2.CharacterAI.BaseAI.UpdateTargets += TurretUpdateTargets;
-        }
-
-        private void TurretShot(On.EntityStates.Railgunner.Weapon.FireSnipeSuper.orig_ModifyBullet orig, EntityStates.Railgunner.Weapon.FireSnipeSuper self, BulletAttack bulletAttack)
-        {
-            orig(self, bulletAttack);
-            var body = self.characterBody;
-            if (body.name.Contains("RailgunnerTurret"))
-            {
-                Vector3 recoilDir = body.characterDirection.forward + Vector3.down * 0.5f;
-                recoilDir.Normalize();
-                body.characterMotor.ApplyForce(-recoilDir * 10000f, true);
-            }
         }
 
         private void TurretUpdateTargets(On.RoR2.CharacterAI.BaseAI.orig_UpdateTargets orig, RoR2.CharacterAI.BaseAI self)
