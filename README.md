@@ -6,6 +6,7 @@ DETAILS:
 - 3000% damage
 - 1.5 proc coefficient
 - 21 second cooldown
+- smart targeting! (targets enemy in LOS with highest "combinedhealth" component)
 - big recoil
 - starts sprinting if it is a small distance away from engi (this is a behaviour the carbonizer has, but the activation distance is super far away, so you probably had no idea)
 
