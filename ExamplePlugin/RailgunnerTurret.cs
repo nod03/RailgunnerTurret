@@ -21,7 +21,7 @@ namespace RailgunnerTurret
     public class RailgunnerTurret : BaseUnityPlugin
     {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
-        public const string PluginAuthor = "AuthorName";
+        public const string PluginAuthor = "bouncyshield";
         public const string PluginName = "RailgunnerTurret";
         public const string PluginVersion = "1.0.0";
 
