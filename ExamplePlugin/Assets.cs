@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using EntityStates;
 using EntityStates.Railgunner.Weapon;
 using IL.RoR2.UI;
 using R2API;
@@ -32,12 +33,20 @@ namespace RailgunnerTurret
 
         public static GameObject hitEffectPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_DLC1_Railgunner.ImpactRailgun_prefab).WaitForCompletion();
         public static GameObject muzzleFlashPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_Base_Common_VFX.Muzzleflash1_prefab).WaitForCompletion();
-        public static GameObject tracerEffectPrefab = Addressables.LoadAssetAsync<GameObject>(RoR2_DLC1_Railgunner.TracerRailgunSuper_prefab).WaitForCompletion();
+        public static GameObject tracerEffectPrefab;
 
         public static void Init()
         {
             CreateRailgunnerTurretPrefab();
             CreateRailgunnerTurretSkill();
+            CreateTracerEffectPrefab();
+        }
+
+        public static void CreateTracerEffectPrefab()
+        {
+            tracerEffectPrefab = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>(RoR2_DLC1_Railgunner.TracerRailgunSuper_prefab).WaitForCompletion(), "RailgunnerTurretTracerEffectPrefab",false);
+            tracerEffectPrefab.transform.Find("StartTransform/PP").gameObject.SetActive(false);
+            ContentPacks.effectDefs.Add(new EffectDef(tracerEffectPrefab));
         }
 
         public static void CreateRailgunnerTurretPrefab()
@@ -175,7 +184,7 @@ namespace RailgunnerTurret
             recoilAmplitudeY = 6f;
             procCoefficient = 1.5f; // PROC COEFF ORIGINALLY 3
             piercingDamageCoefficientPerTarget = 1f;
-            muzzleName = "MuzzleRight";
+            muzzleName = "Muzzle";
             muzzleFlashPrefab = Assets.muzzleFlashPrefab;
             minSpread = 0;
             maxSpread = 0;
@@ -189,6 +198,13 @@ namespace RailgunnerTurret
             spreadPitchScale = 0;
             spreadBloomValue = 0;
             selfKnockbackForce = 10000; // ORIGINALLY 3000
+
+            var stateMac = characterBody.GetComponent<EntityStateMachine>();
+            if (stateMac.state is GenericCharacterMain a)
+            {
+                a.jumpInputReceived = true;
+                a.ProcessJump(true);
+            }
 
             base.OnEnter();
         }

@@ -14,6 +14,7 @@ namespace RailgunnerTurret {
 
         public static List<GameObject> bodyPrefabs = new List<GameObject>();
         public static List<GameObject> masterPrefabs = new List<GameObject>();
+        public static List<EffectDef> effectDefs = new List<EffectDef>();
 
         public static List<SkillDef> skillDefs = new List<SkillDef>();
 
@@ -34,6 +35,7 @@ namespace RailgunnerTurret {
             contentPack.masterPrefabs.Add(masterPrefabs.ToArray());
             contentPack.entityStateTypes.Add(entityStateTypes.ToArray());
             contentPack.skillDefs.Add(skillDefs.ToArray());
+            contentPack.effectDefs.Add(effectDefs.ToArray());
 
             args.ReportProgress(1f);
             yield break;
