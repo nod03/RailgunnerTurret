@@ -71,7 +71,7 @@ namespace RailgunnerTurret
                 float highestScore = float.NegativeInfinity;
                 foreach (HurtBox guy in search.GetResults())
                 {
-                    float score = guy.healthComponent.health;
+                    float score = guy.healthComponent.combinedHealth;
                     if (score > highestScore)
                     {
                         highestScore = score;

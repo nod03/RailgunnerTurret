@@ -91,14 +91,12 @@ namespace RailgunnerTurret
                 }
                 if (driver.moveTargetType == AISkillDriver.TargetType.CurrentLeader && driver.minDistance == 110) // this changes the sprinting behaviour
                 {
-                    driver.minDistance = 20;
+                    driver.minDistance = 30;
                 }
             }
 
             // sound setup
             AddRailgunnerSoundbank(railgunnerTurretPrefab);
-
-            Log.Debug("turret prefab created");
         }
 
         private static void AddRailgunnerSoundbank(GameObject gameObject)
@@ -128,7 +126,7 @@ namespace RailgunnerTurret
 
             LanguageAPI.Add("ENGI_RAILGUNNER_TURRET_NAME", "TRM99 \"Noisy Cricket\"");
             LanguageAPI.Add("ENGI_RAILGUNNER_TURRET_DESC", "Place a <style=cIsUtility>mobile</style> turret that <style=cIsUtility>inherits all your items.</style> " +
-                "Fires a high powered laser for <style=cIsDamage>4000% damage</style> with a cooldown of <style=cIsDamage>21 seconds</style>. Targets the <style=cIsUtility>highest health</style> enemy it can see. Can place up to 2.");
+                "Fires a high powered laser for <style=cIsDamage>3000% damage</style> with a cooldown of <style=cIsDamage>21 seconds</style>. Targets the <style=cIsUtility>highest health</style> enemy it can see. Can place up to 2.");
 
             // swap da turret in
             skill.activationState = new EntityStates.SerializableEntityStateType(typeof(PlaceRailgunnerTurret));
@@ -142,8 +140,6 @@ namespace RailgunnerTurret
             skillFamily.variants = skillFamily.variants.Append(poop).ToArray();
 
             ContentAddition.AddSkillDef(skill);
-
-            Log.Debug("skill created");
         }
     }
     public class PlaceRailgunnerTurret : EntityStates.Engi.EngiWeapon.PlaceWalkerTurret
@@ -192,14 +188,9 @@ namespace RailgunnerTurret
             spreadYawScale = 0;
             spreadPitchScale = 0;
             spreadBloomValue = 0;
-            selfKnockbackForce = 9000; // ORIGINALLY 3000
+            selfKnockbackForce = 10000; // ORIGINALLY 3000
 
             base.OnEnter();
-            
-            //var body = this.characterBody;
-            //Vector3 recoilDir = body.characterDirection.forward;// + Vector3.down * 0.5f;
-            //recoilDir.Normalize();
-            //body.characterMotor.ApplyForce(-recoilDir * 10000f, true);
         }
 
         public override void ModifyBullet(BulletAttack bulletAttack)
