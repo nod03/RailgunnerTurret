@@ -45,7 +45,7 @@ namespace RailgunnerTurret
         public static void CreateTracerEffectPrefab()
         {
             tracerEffectPrefab = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>(RoR2_DLC1_Railgunner.TracerRailgunSuper_prefab).WaitForCompletion(), "RailgunnerTurretTracerEffectPrefab",false);
-            tracerEffectPrefab.transform.Find("StartTransform/PP").gameObject.SetActive(false);
+            tracerEffectPrefab.transform.Find("StartTransform/PP").gameObject.SetActive(false); // disables red screen tint on proximity
             ContentPacks.effectDefs.Add(new EffectDef(tracerEffectPrefab));
         }
 
@@ -199,13 +199,6 @@ namespace RailgunnerTurret
             spreadBloomValue = 0;
             selfKnockbackForce = 10000; // ORIGINALLY 3000
 
-            var stateMac = characterBody.GetComponent<EntityStateMachine>();
-            if (stateMac.state is GenericCharacterMain a)
-            {
-                a.jumpInputReceived = true;
-                a.ProcessJump(true);
-            }
-
             base.OnEnter();
         }
 
@@ -214,6 +207,13 @@ namespace RailgunnerTurret
             base.ModifyBullet(bulletAttack);
 
             bulletAttack.sniper = false;
+
+            var stateMac = characterBody.GetComponent<EntityStateMachine>();
+            if (stateMac.state is GenericCharacterMain a)
+            {
+                a.jumpInputReceived = true;
+                a.ProcessJump(true);
+            }
         }
     }
 }
