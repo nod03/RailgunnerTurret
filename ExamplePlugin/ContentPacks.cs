@@ -19,6 +19,8 @@ namespace RailgunnerTurret {
         public static List<SkillDef> skillDefs = new List<SkillDef>();
 
         public static List<Type> entityStateTypes = new List<Type>();
+        
+        public static List<SkillFamily> skillFamilies = new List<SkillFamily>();
 
         public void Init() {
             ContentManager.collectContentPackProviders += ContentManager_collectContentPackProviders;
@@ -36,6 +38,7 @@ namespace RailgunnerTurret {
             contentPack.entityStateTypes.Add(entityStateTypes.ToArray());
             contentPack.skillDefs.Add(skillDefs.ToArray());
             contentPack.effectDefs.Add(effectDefs.ToArray());
+            contentPack.skillFamilies.Add(skillFamilies.ToArray());
 
             args.ReportProgress(1f);
             yield break;

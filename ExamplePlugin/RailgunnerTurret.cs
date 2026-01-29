@@ -12,6 +12,8 @@ using UnityEngine.Rendering;
 using RoR2BepInExPack;
 using R2API.ContentManagement;
 using UnityEngine.Bindings;
+using BepInEx.Configuration;
+using RoR2BepInExPack.GameAssetPaths;
 
 namespace RailgunnerTurret
 {
@@ -29,6 +31,8 @@ namespace RailgunnerTurret
         {
             Log.Init(Logger);
 
+            Configs();
+
             Hooks();
 
             Assets.Init();
@@ -39,6 +43,29 @@ namespace RailgunnerTurret
         private void Hooks()
         {
             On.RoR2.CharacterAI.BaseAI.UpdateTargets += TurretUpdateTargets;
+        }
+
+        internal static ConfigEntry<float> damageCoefficient;
+        internal static ConfigEntry<float> critDamageMultiplier;
+        internal static ConfigEntry<float> procCoefficient;
+        internal static ConfigEntry<float> selfKnockbackForce;
+        internal static ConfigEntry<bool> postProcessingEffects;
+        internal static ConfigEntry<float> baseRechargeInterval;
+        internal static ConfigEntry<float> maxDistance;
+        internal static ConfigEntry<float> moveSpeedMulitplier;
+        internal static ConfigEntry<float> distanceToStartSprinting;
+
+        private void Configs()
+        {
+            damageCoefficient = Config.Bind("Turret", "damageCoefficient", 30f,"e.g. 30 gives 3000% damage");
+            critDamageMultiplier = Config.Bind("Turret", "critDamageMultiplier", 1.5f);
+            procCoefficient = Config.Bind("Turret", "procCoefficient", 1.5f);
+            selfKnockbackForce = Config.Bind("Turret", "selfKnockbackForce", 10000f,"the recoil");
+            postProcessingEffects = Config.Bind("Turret", "postProcessingEffects", false,"the red glow on each shot, can be annoying");
+            baseRechargeInterval = Config.Bind("Turret", "baseRechargeInterval", 21f,"the cooldown");
+            maxDistance = Config.Bind("Turret", "maxDistance", 9999f,"the farthest distance the turret will lock onto a target from");
+            moveSpeedMulitplier = Config.Bind("Turret", "moveSpeedMulitplier", 0.6f, "this multiplies carbonizer's base speed");
+            distanceToStartSprinting = Config.Bind("Turret", "distanceToStartSprinting", 30f,"the distance from engi that the turret will start sprinting");
         }
 
         private void TurretUpdateTargets(On.RoR2.CharacterAI.BaseAI.orig_UpdateTargets orig, RoR2.CharacterAI.BaseAI self)

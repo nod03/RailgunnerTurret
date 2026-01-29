@@ -45,7 +45,7 @@ namespace RailgunnerTurret
         public static void CreateTracerEffectPrefab()
         {
             tracerEffectPrefab = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>(RoR2_DLC1_Railgunner.TracerRailgunSuper_prefab).WaitForCompletion(), "RailgunnerTurretTracerEffectPrefab",false);
-            tracerEffectPrefab.transform.Find("StartTransform/PP").gameObject.SetActive(false); // disables red screen tint on proximity
+            tracerEffectPrefab.transform.Find("StartTransform/PP").gameObject.SetActive(RailgunnerTurret.postProcessingEffects.Value); // disables red screen tint on proximity
             ContentPacks.effectDefs.Add(new EffectDef(tracerEffectPrefab));
         }
 
@@ -65,7 +65,7 @@ namespace RailgunnerTurret
 
             var skillLocator = body.GetComponent<SkillLocator>();
 
-            body.baseMoveSpeed = body.baseMoveSpeed * 0.6f; // movement speed tweak
+            body.baseMoveSpeed = body.baseMoveSpeed * RailgunnerTurret.moveSpeedMulitplier.Value; // movement speed tweak
 
             // replaces primary with railgun shot
             SkillDef railShotClone = ScriptableObject.Instantiate(Addressables.LoadAssetAsync<SkillDef>(RoR2_DLC1_Railgunner.RailgunnerBodyFireSnipeSuper_asset).WaitForCompletion());
@@ -74,10 +74,13 @@ namespace RailgunnerTurret
             railShotClone.activationState = new EntityStates.SerializableEntityStateType(typeof(FireSnipeSuperTurret));
             ContentPacks.entityStateTypes.Add(typeof(FireSnipeSuperTurret));
 
-            railShotClone.baseRechargeInterval = 21f;
+            railShotClone.baseRechargeInterval = RailgunnerTurret.baseRechargeInterval.Value;
             railShotClone.baseMaxStock = 1;
 
-            var family = skillLocator.primary.skillFamily;
+            var baseFamily = skillLocator.primary.skillFamily;
+            var family = ScriptableObject.Instantiate(baseFamily);
+            ContentPacks.skillFamilies.Add(family);
+
             family.variants =
             [
                 new() {
@@ -86,6 +89,7 @@ namespace RailgunnerTurret
                     viewableNode = new ViewablesCatalog.Node(railShotClone.skillNameToken, false)
                 }
             ];
+            skillLocator.primary._skillFamily = family;
 
             // AI tweaks
             var drivers = master.GetComponents<AISkillDriver>();
@@ -93,14 +97,14 @@ namespace RailgunnerTurret
             {
                 if (driver.skillSlot == SkillSlot.Primary)
                 {
-                    driver.maxDistance = 9999f;
+                    driver.maxDistance = RailgunnerTurret.maxDistance.Value;
                     driver.activationRequiresTargetLoS = true;
                     driver.activationRequiresAimConfirmation = true;
                     driver.activationRequiresAimTargetLoS = true;
                 }
                 if (driver.moveTargetType == AISkillDriver.TargetType.CurrentLeader && driver.minDistance == 110) // this changes the sprinting behaviour
                 {
-                    driver.minDistance = 30;
+                    driver.minDistance = RailgunnerTurret.distanceToStartSprinting.Value;
                 }
             }
 
@@ -126,7 +130,7 @@ namespace RailgunnerTurret
             // clone carbonizer
             SkillDef carbonizerSkill = Addressables.LoadAssetAsync<SkillDef>(RoR2_Base_Engi.EngiBodyPlaceWalkerTurret_asset).WaitForCompletion();
 
-            var skill = ScriptableObject.Instantiate(carbonizerSkill);
+            SkillDef skill = ScriptableObject.Instantiate(carbonizerSkill);
 
             // language stuff
             skill.skillName = "RailgunnerTurret";
@@ -172,8 +176,8 @@ namespace RailgunnerTurret
             force = 4000f;
             headshotSoundString = "Play_railgunner_m2_headshot";
             fireSoundString = "Play_railgunner_R_fire";
-            damageCoefficient = 30f; // DAMAGE COEFF ORIGINALLY 40
-            critDamageMultiplier = 1.5f;
+            damageCoefficient = RailgunnerTurret.damageCoefficient.Value; // DAMAGE COEFF ORIGINALLY 40
+            critDamageMultiplier = RailgunnerTurret.critDamageMultiplier.Value;
             bulletRadius = 1;
             bulletCount = 1;
             baseDuration = 1;
@@ -182,7 +186,7 @@ namespace RailgunnerTurret
             animationLayerName = "Gesture, Override";
             recoilAmplitudeX = 1f;
             recoilAmplitudeY = 6f;
-            procCoefficient = 1.5f; // PROC COEFF ORIGINALLY 3
+            procCoefficient = RailgunnerTurret.procCoefficient.Value; // PROC COEFF ORIGINALLY 3
             piercingDamageCoefficientPerTarget = 1f;
             muzzleName = "Muzzle";
             muzzleFlashPrefab = Assets.muzzleFlashPrefab;
@@ -197,7 +201,7 @@ namespace RailgunnerTurret
             spreadYawScale = 0;
             spreadPitchScale = 0;
             spreadBloomValue = 0;
-            selfKnockbackForce = 10000; // ORIGINALLY 3000
+            selfKnockbackForce = RailgunnerTurret.selfKnockbackForce.Value; // ORIGINALLY 3000
 
             base.OnEnter();
         }
